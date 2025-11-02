@@ -30,4 +30,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // İade talep edilmiş siparişler
     @Query("SELECT o FROM Order o WHERE o.status = 'REFUND_REQUESTED' ORDER BY o.createdAt DESC")
     List<Order> findRefundRequestedOrders();
+    
+    // Duruma göre sipariş sayısı
+    long countByStatus(OrderStatus status);
 }

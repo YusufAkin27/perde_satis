@@ -1,6 +1,7 @@
 package perdesatis.demo.bize_ulaşın;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import perdesatis.demo.response.ResponseMessage;
 
@@ -12,15 +13,19 @@ public class ContactUsController {
     private final ContactUsServis bizeUlasinServis;
 
 
-    // Admin mesaja yanıt verir
+    // Admin mesaja yanıt verir (eski endpoint - yeni AdminMessageController'da)
     @PostMapping("/admin/yanıtla/{messageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Deprecated
     public ResponseMessage respondToMessage(
             @PathVariable Long messageId, 
-            @RequestBody String response) {
-        return bizeUlasinServis.respondToMessage(messageId, response);
+            @RequestBody AdminResponseRequest request) {
+        return bizeUlasinServis.respondToMessage(messageId, request.getResponse());
     }
-    // Admin tüm mesajları görür (sadece doğrulanmış olanlar)
+    // Admin tüm mesajları görür (eski endpoint - yeni AdminMessageController'da)
     @GetMapping("/admin/mesajlar")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Deprecated
     public ResponseMessage getAllMessages() {
         return bizeUlasinServis.getAllMessages();
     }

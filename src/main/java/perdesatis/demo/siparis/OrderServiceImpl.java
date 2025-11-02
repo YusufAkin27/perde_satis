@@ -230,6 +230,49 @@ public class OrderServiceImpl implements OrderService {
                 );
     }
 
+    @Override
+    @Transactional
+    public ResponseMessage updateOrderDetailsByAdmin(String orderNumber, OrderUpdateRequest request) {
+        log.info("Admin sipariş detaylarını güncelliyor: {}", orderNumber);
+
+        return orderRepository.findByOrderNumber(orderNumber)
+                .<ResponseMessage>map(order -> {
+                    // Müşteri bilgilerini güncelle
+                    if (request.getCustomerName() != null) {
+                        order.setCustomerName(request.getCustomerName());
+                    }
+                    if (request.getCustomerEmail() != null) {
+                        order.setCustomerEmail(request.getCustomerEmail());
+                    }
+                    if (request.getCustomerPhone() != null) {
+                        order.setCustomerPhone(request.getCustomerPhone());
+                    }
+
+                    // Adres bilgilerini güncelle
+                    if (!order.getAddresses().isEmpty()) {
+                        Address address = order.getAddresses().get(0);
+
+                        if (request.getFullName() != null) address.setFullName(request.getFullName());
+                        if (request.getPhone() != null) address.setPhone(request.getPhone());
+                        if (request.getAddressLine() != null) address.setAddressLine(request.getAddressLine());
+                        if (request.getAddressDetail() != null) address.setAddressDetail(request.getAddressDetail());
+                        if (request.getCity() != null) address.setCity(request.getCity());
+                        if (request.getDistrict() != null) address.setDistrict(request.getDistrict());
+                        if (request.getPostalCode() != null) address.setPostalCode(request.getPostalCode());
+                    }
+
+                    orderRepository.save(order);
+                    log.info("Sipariş detayları güncellendi: {}", orderNumber);
+
+                    return new DataResponseMessage<>(
+                            "Sipariş detayları başarıyla güncellendi.",
+                            true,
+                            convertToDTO(order)
+                    );
+                })
+                .orElseGet(() -> new ResponseMessage("Sipariş bulunamadı.", false));
+    }
+
 
     @Override
     @Transactional

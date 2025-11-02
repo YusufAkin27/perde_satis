@@ -2,6 +2,7 @@ package perdesatis.demo.siparis;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import perdesatis.demo.response.ResponseMessage;
 
@@ -20,6 +21,7 @@ public class OrderController {
      * GET /api/orders/admin/{orderNumber}
      */
     @GetMapping("/admin/{orderNumber}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseMessage getOrderByNumber(@PathVariable String orderNumber) {
         return orderService.getOrderByNumber(orderNumber);
     }
@@ -29,6 +31,7 @@ public class OrderController {
      * GET /api/orders/admin/all
      */
     @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseMessage getAllOrders() {
         return orderService.getAllOrders();
     }
@@ -38,6 +41,7 @@ public class OrderController {
      * GET /api/orders/admin/status/{status}
      */
     @GetMapping("/admin/status/{status}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseMessage getOrdersByStatus(@PathVariable OrderStatus status) {
         return orderService.getOrdersByStatus(status);
     }
@@ -47,6 +51,7 @@ public class OrderController {
      * PUT /api/orders/admin/{orderNumber}/status?status=SHIPPED
      */
     @PutMapping("/admin/{orderNumber}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseMessage updateOrderStatus(
             @PathVariable String orderNumber,
             @RequestParam OrderStatus status) {
@@ -54,10 +59,23 @@ public class OrderController {
     }
 
     /**
+     * Admin sipariş detaylarını güncelleme (adres, müşteri bilgileri vb.)
+     * PUT /api/orders/admin/{orderNumber}
+     */
+    @PutMapping("/admin/{orderNumber}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseMessage updateOrderDetails(
+            @PathVariable String orderNumber,
+            @Valid @RequestBody OrderUpdateRequest request) {
+        return orderService.updateOrderDetailsByAdmin(orderNumber, request);
+    }
+
+    /**
      * Admin notu ekleme
      * POST /api/orders/admin/{orderNumber}/note
      */
     @PostMapping("/admin/{orderNumber}/note")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseMessage addAdminNote(
             @PathVariable String orderNumber,
             @RequestBody String note) {
@@ -69,6 +87,7 @@ public class OrderController {
      * POST /api/orders/admin/{orderNumber}/approve-refund
      */
     @PostMapping("/admin/{orderNumber}/approve-refund")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseMessage approveRefund(@PathVariable String orderNumber) {
         return orderService.approveRefund(orderNumber);
     }
@@ -78,6 +97,7 @@ public class OrderController {
      * POST /api/orders/admin/{orderNumber}/reject-refund?reason=xxx
      */
     @PostMapping("/admin/{orderNumber}/reject-refund")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseMessage rejectRefund(
             @PathVariable String orderNumber,
             @RequestParam String reason) {

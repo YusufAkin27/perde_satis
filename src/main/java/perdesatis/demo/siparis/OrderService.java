@@ -18,6 +18,7 @@ public interface OrderService {
     ResponseMessage getAllOrders();
     ResponseMessage getOrdersByStatus(OrderStatus status);
     ResponseMessage updateOrderStatus(String orderNumber, OrderStatus newStatus);
+    ResponseMessage updateOrderDetailsByAdmin(String orderNumber, OrderUpdateRequest request);
     ResponseMessage addAdminNote(String orderNumber, String note);
     ResponseMessage approveRefund(String orderNumber);
     ResponseMessage rejectRefund(String orderNumber, String reason);

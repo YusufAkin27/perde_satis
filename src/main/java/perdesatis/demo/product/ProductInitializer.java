@@ -25,6 +25,7 @@ public class ProductInitializer {
         klasik.setQuantity(0);
         klasik.setPleatType(null);
         klasik.setWidth(null);
+        klasik.setCoverImageUrl("https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.shutterstock.com%2Fsearch%2Finspirational-images&psig=AOvVaw1jo1M4GIGfWZyzS2wSPTbS&ust=1762176826769000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCPDzmrDK05ADFQAAAAAdAAAAABAE");
         klasik.setHeight(null);
         productRepository.save(klasik);
 

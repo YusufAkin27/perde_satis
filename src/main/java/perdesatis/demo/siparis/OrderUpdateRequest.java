@@ -1,13 +1,14 @@
 package perdesatis.demo.siparis;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class OrderUpdateRequest {
     
-    @NotBlank(message = "Sipariş numarası boş olamaz.")
-    private String orderNumber;
+    // Müşteri bilgileri (Admin için)
+    private String customerName;
+    private String customerEmail;
+    private String customerPhone;
     
     // Adres güncelleme alanları
     private String fullName;

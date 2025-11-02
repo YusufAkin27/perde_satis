@@ -1,11 +1,11 @@
 package perdesatis.demo.product;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -15,11 +15,20 @@ public class Product {
     private Long id;
 
     private String name;
+    private String description;
     private Double width; // cm cinsinden
     private Double height;
     private String pleatType; // 1x, 1x2, 1x2.5 gibi
-    private int quantity;
+    private Integer quantity;
     private BigDecimal price; // metre fiyatı örn. 80 TL
+    
+    @Column(length = 1000)
+    private String coverImageUrl; // Kapak fotoğrafı URL'i
+    
+    @ElementCollection
+    @CollectionTable(name = "product_detail_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url", length = 1000)
+    private List<String> detailImageUrls = new ArrayList<>(); // Ürün detay fotoğrafları
 
     public BigDecimal fiyatHesapla() {
         if (width == null || pleatType == null || price == null) {
