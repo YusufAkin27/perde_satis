@@ -34,12 +34,12 @@ public class PaymentController {
         ResponseMessage result = paymentService.complete3DPayment(paymentId, conversationId, httpServletRequest);
         if (result.isSuccess()) {
             String orderNumber = ((DataResponseMessage<?>) result).getData().toString();
-            String redirectUrl = "https://yusufakin.online//payment-success?order=" + orderNumber;
+            String redirectUrl = "https://yusufakin.online/payment-success?order=" + orderNumber;
             log.info("Ödeme başarılı, kullanıcı yönlendiriliyor: {}", redirectUrl);
             response.sendRedirect(redirectUrl);
         }
         else {
-            String redirectUrl = "https://yusufakin.online//payment-failed";
+            String redirectUrl = "https://yusufakin.online/payment-failed";
             log.warn("Ödeme başarısız, kullanıcı yönlendiriliyor: {}", redirectUrl);
             response.sendRedirect(redirectUrl);
         }
