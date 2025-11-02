@@ -417,7 +417,7 @@ public class PaymentManager implements PaymentService {
             request.setPaymentChannel(PaymentChannel.WEB.name());
             request.setPaymentGroup(PaymentGroup.PRODUCT.name());
 
-            String baseUrl = "http://localhost:8080/api";
+            String baseUrl = "https://perde-satis-1.onrender.com/api";
             request.setCallbackUrl(baseUrl + "/payment/3d-callback");
             request.setPaymentCard(paymentCard);
             request.setBuyer(buyer);
