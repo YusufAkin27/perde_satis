@@ -312,49 +312,52 @@ public class PaymentManager implements PaymentService {
 
             for (OrderDetail detail : paymentRequest.getOrderDetails()) {
 
-                // Veritabanından ürün bul
+                // Ürün veritabanından bulunur
                 Product product = productRepository.findById(detail.getProductId())
                         .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + detail.getProductId()));
 
-                // En (cm -> m)
+                // 1. En: cm → metre
                 double metreCinsindenEn = detail.getWidth() / 100.0;
 
-                // Pile çarpanı (örnek: "1x3" veya "pilesiz")
+                // 2. Pile çarpanı ("1x2" → 2)
                 double pileCarpani = 1.0;
-                try {
-                    if (detail.getPleatType() != null && !detail.getPleatType().equalsIgnoreCase("pilesiz")) {
-                        String cleaned = detail.getPleatType().replace("x", "");
-                        pileCarpani = Double.parseDouble(cleaned);
+                if (detail.getPleatType() != null && !detail.getPleatType().equalsIgnoreCase("pilesiz")) {
+                    try {
+                        String[] parts = detail.getPleatType().split("x");
+                        if (parts.length == 2) {
+                            pileCarpani = Double.parseDouble(parts[1]);
+                        } else {
+                            log.warn("PleatType formatı beklenenden farklı: {}", detail.getPleatType());
+                        }
+                    } catch (Exception e) {
+                        log.warn("PleatType parse hatası: {}", detail.getPleatType());
                     }
-                } catch (Exception e) {
-                    log.warn("PleatType hatalı formatta: {}", detail.getPleatType());
                 }
 
-                // Tek ürün fiyatı = metre * pile * ürün.metreFiyatı
+                // 3. Tek ürün fiyatı: (metre * pile * metre fiyatı)
                 BigDecimal birimFiyat = BigDecimal
                         .valueOf(metreCinsindenEn * pileCarpani)
                         .multiply(product.getPrice());
 
-                // Adetle çarp
+                // 4. Adet çarpımı
                 BigDecimal urunToplam = birimFiyat.multiply(BigDecimal.valueOf(detail.getQuantity()));
 
-                // OrderDetail objesine fiyat ata
+                // 5. OrderDetail objesine fiyat ata
                 detail.setPrice(urunToplam);
 
-                // Genel toplamı artır
+                // 6. Genel toplamı artır
                 toplamTutar = toplamTutar.add(urunToplam);
             }
 
-            // Toplam tutarı request'e yaz (artık 0 değil)
+            // 7️⃣ Toplam tutarı request'e yaz
             paymentRequest.setAmount(toplamTutar);
-
             log.info("Toplam hesaplanan tutar: {} TL", toplamTutar);
 
             if (toplamTutar.compareTo(BigDecimal.valueOf(20)) < 0) {
                 return new ResponseMessage("Toplam tutar minimum 20 TL olmalıdır.", false);
             }
 
-            // 2️⃣ Kart bilgilerini hazırla
+            // 8️⃣ Kart bilgilerini hazırla
             PaymentCard paymentCard = new PaymentCard();
             paymentCard.setCardHolderName(paymentRequest.getFirstName() + " " + paymentRequest.getLastName());
             paymentCard.setCardNumber(paymentRequest.getCardNumber());
@@ -363,7 +366,7 @@ public class PaymentManager implements PaymentService {
             paymentCard.setCvc(paymentRequest.getCardCvc());
             paymentCard.setRegisterCard(0);
 
-            // 3️⃣ Buyer bilgileri
+            // 9️⃣ Buyer bilgileri
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             Buyer buyer = new Buyer();
             buyer.setId(UUID.randomUUID().toString());
@@ -380,7 +383,7 @@ public class PaymentManager implements PaymentService {
             buyer.setCountry("Turkey");
             buyer.setZipCode("34000");
 
-            // 4️⃣ Adres bilgileri
+            // 🔟 Adres bilgileri
             com.iyzipay.model.Address address = new com.iyzipay.model.Address();
             address.setContactName(paymentRequest.getFirstName() + " " + paymentRequest.getLastName());
             address.setCity(paymentRequest.getCity());
@@ -389,7 +392,7 @@ public class PaymentManager implements PaymentService {
                     (paymentRequest.getAddressDetail() != null ? " - " + paymentRequest.getAddressDetail() : ""));
             address.setZipCode("34000");
 
-            // 5️⃣ Sepet detaylarını oluştur
+            // 1️⃣1️⃣ Sepet detaylarını oluştur
             List<BasketItem> basketItems = new ArrayList<>();
             int index = 1;
             for (OrderDetail detail : paymentRequest.getOrderDetails()) {
@@ -403,7 +406,7 @@ public class PaymentManager implements PaymentService {
                 basketItems.add(item);
             }
 
-            // 6️⃣ Ödeme isteği
+            // 1️⃣2️⃣ Ödeme isteği oluştur
             String conversationId = UUID.randomUUID().toString();
 
             CreatePaymentRequest request = new CreatePaymentRequest();
@@ -425,11 +428,11 @@ public class PaymentManager implements PaymentService {
             request.setBillingAddress(address);
             request.setBasketItems(basketItems);
 
-            // 7️⃣ 3D başlat
+            // 1️⃣3️⃣ 3D Secure başlat
             ThreedsInitialize threedsInitialize = ThreedsInitialize.create(request, iyzicoOptions);
 
             if ("success".equalsIgnoreCase(threedsInitialize.getStatus())) {
-                // Belleğe tüm müşteri bilgilerini kaydet
+                // Müşteri bilgilerini cache’e yaz
                 TopUpSessionData sessionData = new TopUpSessionData();
                 sessionData.setUsername(buyer.getEmail());
                 sessionData.setFullName(paymentRequest.getFirstName() + " " + paymentRequest.getLastName());
@@ -458,5 +461,6 @@ public class PaymentManager implements PaymentService {
             return new ResponseMessage("3D başlatma hatası: " + e.getMessage(), false);
         }
     }
+
 
 }
