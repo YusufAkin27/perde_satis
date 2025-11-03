@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,21 +36,25 @@ public class Product {
             throw new IllegalArgumentException("Width, pleatType ve price boş olamaz.");
         }
 
-        // 1. cm -> metre
-        double metreCinsindenEn = width / 100.0;
+          double metreCinsindenEn = width / 100.0;
 
-        // 2. pile çarpanı (örnek: "1x2.5" -> 2.5)
         double pileCarpani = 1.0;
         try {
-            String cleaned = pleatType.replace("x", "");
-            pileCarpani = Double.parseDouble(cleaned);
-        } catch (Exception e) {
-            System.err.println("PleatType hatalı formatta: " + pleatType);
+            // "1x2.5" → ["1", "2.5"]
+            String[] parts = pleatType.split("x");
+            if (parts.length == 2) {
+                pileCarpani = Double.parseDouble(parts[1]);
+            } else {
+                throw new IllegalArgumentException("PleatType formatı hatalı: " + pleatType);
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("PleatType sayısal değil: " + pleatType);
         }
 
-        // 3. toplam fiyat = metre * pile * metre fiyatı
+        // 3. Toplam fiyat = metre * pile * 1m fiyatı
         double toplam = metreCinsindenEn * pileCarpani * price.doubleValue();
 
-        return BigDecimal.valueOf(toplam).setScale(2, BigDecimal.ROUND_HALF_UP);
+        return BigDecimal.valueOf(toplam).setScale(2, RoundingMode.HALF_UP);
     }
+
 }
